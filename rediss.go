@@ -159,9 +159,9 @@ func (s *SPool) findPreferred() {
 	}
 	tmpa := tmpr.([]interface{})
 	for _, tmpv := range tmpa {
-		v := tmpv.([]string)
-		h := v[3]
-		p := v[5]
+		v := tmpv.([]interface{})
+		h := v[3].(string)
+		p := v[5].(string)
 		hp := h + ":" + p
 		exists := false
 		for _, existing := range s.hps {
