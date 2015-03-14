@@ -171,7 +171,7 @@ func (s *SPool) findPreferred() {
 			}
 		}
 		if !exists {
-			s.log("Adding sentinel to list:", hp)
+			fmt.Println("Adding sentinel to list:", hp)
 			s.hps = append(s.hps, hp)
 		}
 	}
