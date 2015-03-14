@@ -1,3 +1,50 @@
+/*
+Package rediss provides a client for Sentinel managed Redis servers
+
+One possible use is as follows:
+
+        package main
+
+        import (
+                "fmt"
+                "github.com/richard-lyman/rediss"
+                "os"
+                "time"
+        )
+
+        func main() {
+                t := 0
+                sentinelHostPort := "localhost:26379"
+                masterName := "mymaster"
+                size := 10
+                retryDelay := 5 * time.Second
+                resyncDelay := 100 * time.Millisecond
+                s := rediss.New(sentinelHostPort, masterName, size, retryDelay, resyncDelay)
+                //s.logEnabled = true
+                go func() {
+                        previousState := s.State
+                        fmt.Println(s.State)
+                        for {
+                                if previousState != s.State {
+                                        previousState = s.State
+                                        fmt.Println(s.State)
+                                }
+                        }
+                }()
+                for i := 0; i < 10000; i++ { // In the middle of this process you could trigger a failover
+                        v, err := s.PDo("GET", "a")
+                        if err != nil {
+                                fmt.Println("Failed in test call to GET a", err)
+                                os.Exit(-1)
+                        }
+                        if v.(string) == "b" {
+                                t += 1
+                        }
+                }
+                fmt.Println(t)
+        }
+
+*/
 package rediss
 
 import (
@@ -19,14 +66,14 @@ const (
 	Healthy       state = "Healthy"
 )
 
-func New(host_port string, masterName string, size int, retryDelay time.Duration, resyncDelay time.Duration) *SPool {
+func New(hostPort string, masterName string, size int, retryDelay time.Duration, resyncDelay time.Duration) *SPool {
 	s := &SPool{
 		State:      Creating,
 		masterName: masterName,
-		hps:        []string{host_port},
+		hps:        []string{hostPort},
 		size:       size,
 		retryDelay: retryDelay,
-		p:          host_port,
+		p:          hostPort,
 		up:         true,
 		n:          map[string][]redisn.Handler{},
 	}
