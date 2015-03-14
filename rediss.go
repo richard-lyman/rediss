@@ -272,19 +272,22 @@ func (s *SPool) pubSub() {
 		s.log("Message from masterName")
 		return msga[0] == s.masterName
 	}
-	redisn.NDo(c, "SUBSCRIBE", func(k string, msg string, err error) {
+	redisn.NDo(c, "SUBSCRIBE", func(full string, k string, msg string, err error) {
+                s.log("Full message:", full)
 		if isMasterName(msg) {
                         s.log("+odown")
 			s.up = false
 		}
 	}, "+odown")
-	redisn.NDo(c, "SUBSCRIBE", func(k string, msg string, err error) {
+	redisn.NDo(c, "SUBSCRIBE", func(full string, k string, msg string, err error) {
+                s.log("Full message:", full)
 		if isMasterName(msg) {
                         s.log("-odown")
 			s.up = true
 		}
 	}, "-odown")
-	redisn.NDo(c, "SUBSCRIBE", func(k string, msg string, err error) {
+	redisn.NDo(c, "SUBSCRIBE", func(full string, k string, msg string, err error) {
+                s.log("Full message:", full)
 		if isMasterName(msg) {
                         s.log("+switch-master")
 			s.up = true
