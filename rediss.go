@@ -20,7 +20,7 @@ One possible use is as follows:
                 retryDelay := 5 * time.Second
                 resyncDelay := 100 * time.Millisecond
                 s := rediss.New(sentinelHostPort, masterName, size, retryDelay, resyncDelay)
-                //s.logEnabled = true
+                //s.LogEnabled = true
                 go func() {
                         previousState := s.State
                         fmt.Println(s.State)
@@ -111,12 +111,12 @@ type SPool struct {
 	p           string
 	up          bool
 	pool        *redisn.NPool
-	logEnabled  bool
+	LogEnabled  bool
 	n           map[string][]redisn.Handler
 }
 
 func (s *SPool) log(msgs ...interface{}) {
-	if s.logEnabled {
+	if s.LogEnabled {
 		fmt.Println(msgs...)
 	}
 }
