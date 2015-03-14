@@ -145,11 +145,49 @@ func (s *SPool) bootstrap() {
 }
 
 func (s *SPool) findPreferred() {
-	// Get the list of all the known sentinels
-	// Find the 'fastest' one - prefer it
-	// set s.p to fastest
-	s.p = s.hps[0] // TODO - not this
-	// If NONE of the listed sentinels are responding correctly... keep trying the last known list
+	if len(s.p) == 0 {
+		s.p = s.hps[0]
+	}
+	c, err := net.Dial("tcp", s.p)
+	if err != nil {
+		panic(err)
+	}
+	tmpr, err := redisb.Do(c, "SENTINEL", "sentinels", s.masterName)
+	c.Close()
+	if err != nil {
+		panic(fmt.Sprintf("Unable to get list of sentinels: %s", err))
+	}
+	tmpa := tmpr.([]interface{})
+	for _, tmpv := range tmpa {
+		v := tmpv.([]string)
+		h := v[3]
+		p := v[5]
+		hp := h + ":" + p
+		exists := false
+		for _, existing := range s.hps {
+			if existing == hp {
+				exists = true
+				break
+			}
+		}
+		if !exists {
+			s.hps = append(s.hps, hp)
+		}
+	}
+	fastest := 1 * time.Second
+	for _, fhp := range s.hps {
+                start := time.Now()
+		c, err := net.DialTimeout("tcp", fhp, 100 * time.Millisecond)
+		if err != nil {
+                        continue
+		}
+                d := time.Since(start)
+                c.Close()
+                if d < fastest {
+                        s.p = fhp
+                        fastest = d
+                }
+	}
 }
 
 func (s *SPool) reset() {
@@ -216,7 +254,7 @@ func (s *SPool) reset() {
 
 func (s *SPool) pubSub() {
 	// TODO - this needs refactoring of the redisn package to allow for pubsub w/out a pool
-        // ... or we create a pool for the sentinels... a pool of size one... such a waste
+	// ... or we create a pool for the sentinels... a pool of size one... such a waste
 	/*
 		isMasterName := func(msg string) bool {
 			tmp := strings.SplitN(msg, " @ ", 2)
