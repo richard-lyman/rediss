@@ -171,22 +171,23 @@ func (s *SPool) findPreferred() {
 			}
 		}
 		if !exists {
+			s.log("Adding sentinel to list:", hp)
 			s.hps = append(s.hps, hp)
 		}
 	}
 	fastest := 1 * time.Second
 	for _, fhp := range s.hps {
-                start := time.Now()
-		c, err := net.DialTimeout("tcp", fhp, 100 * time.Millisecond)
+		start := time.Now()
+		c, err := net.DialTimeout("tcp", fhp, 100*time.Millisecond)
 		if err != nil {
-                        continue
+			continue
 		}
-                d := time.Since(start)
-                c.Close()
-                if d < fastest {
-                        s.p = fhp
-                        fastest = d
-                }
+		d := time.Since(start)
+		c.Close()
+		if d < fastest {
+			s.p = fhp
+			fastest = d
+		}
 	}
 }
 
