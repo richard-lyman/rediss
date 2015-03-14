@@ -257,55 +257,35 @@ func (s *SPool) reset() {
 func (s *SPool) pubSub() {
         c := s.creator()
 	isMasterName := func(msg string) bool {
-                s.log("Checking for masterName match on message:", msg)
-		tmp := strings.SplitN(msg, " @ ", 2)
-		if len(tmp) < 2 {
+		msga := strings.SplitN(msg, " ", 3)
+		if len(msga) < 3 {
 			s.log("Incorrectly formatted Sentinel pubsub message:", msg)
 			return false
 		}
-		msga := strings.SplitN(tmp[1], " ", 2)
-		s.log("Sentinel pubsub:", msg)
-		if len(msga) < 2 {
-			s.log("Incorrectly formatted Sentinel pubsub message:", msg)
-			return false
-		}
-		s.log("Message from masterName")
-		return msga[0] == s.masterName
+		return msga[1] == s.masterName
 	}
-        fmt.Println("Subscribing to +odown")
 	redisn.NDo(c, "SUBSCRIBE", func(full string, k string, msg string, err error) {
-                fmt.Println("Handler for +odown was called:", full, k, msg, err)
                 if err != nil {
-                        s.log("ERROR on +odown:", err)
                         return
                 }
-                s.log("Full message:", full)
 		if isMasterName(msg) {
-                        s.log("+odown")
 			s.up = false
 		}
 	}, "+odown")
-        fmt.Println("Subscribed to +odown")
 	redisn.NDo(c, "SUBSCRIBE", func(full string, k string, msg string, err error) {
                 if err != nil {
-                        s.log("ERROR on -odown:", err)
                         return
                 }
-                s.log("Full message:", full)
 		if isMasterName(msg) {
-                        s.log("-odown")
 			s.up = true
 		}
 	}, "-odown")
 	redisn.NDo(c, "SUBSCRIBE", func(full string, k string, msg string, err error) {
                 if err != nil {
-                        s.log("ERROR on +switch-master:", err)
                         return
                 }
-                s.log("Full message:", full)
 		if isMasterName(msg) {
                         s.log("+switch-master")
-			s.up = true
 		}
 	}, "switch-master")
 }
