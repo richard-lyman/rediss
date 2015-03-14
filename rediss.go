@@ -19,8 +19,8 @@ One possible use is as follows:
                 size := 10
                 retryDelay := 5 * time.Second
                 resyncDelay := 100 * time.Millisecond
-                s := rediss.New(sentinelHostPort, masterName, size, retryDelay, resyncDelay)
-                //s.LogEnabled = true
+                logEnabled = false
+                s := rediss.New(sentinelHostPort, masterName, size, retryDelay, resyncDelay, logEnabled)
                 go func() {
                         previousState := s.State
                         fmt.Println(s.State)
@@ -66,7 +66,7 @@ const (
 	Healthy       state = "Healthy"
 )
 
-func New(hostPort string, masterName string, size int, retryDelay time.Duration, resyncDelay time.Duration) *SPool {
+func New(hostPort string, masterName string, size int, retryDelay time.Duration, resyncDelay time.Duration, logEnabled bool) *SPool {
 	s := &SPool{
 		State:      Creating,
 		masterName: masterName,
@@ -76,6 +76,7 @@ func New(hostPort string, masterName string, size int, retryDelay time.Duration,
 		p:          hostPort,
 		up:         true,
 		n:          map[string][]redisn.Handler{},
+                LogEnabled: logEnabled,
 	}
 	s.bootstrap()
 	s.creator = func() net.Conn {
@@ -171,7 +172,7 @@ func (s *SPool) findPreferred() {
 			}
 		}
 		if !exists {
-			fmt.Println("Adding sentinel to list:", hp)
+                        s.log("Adding sentinel:", hp)
 			s.hps = append(s.hps, hp)
 		}
 	}
