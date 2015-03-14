@@ -273,16 +273,19 @@ func (s *SPool) pubSub() {
 	}
 	redisn.NDo(c, "SUBSCRIBE", func(k string, msg string, err error) {
 		if isMasterName(msg) {
+                        s.log("+odown")
 			s.up = false
 		}
 	}, "+odown")
 	redisn.NDo(c, "SUBSCRIBE", func(k string, msg string, err error) {
 		if isMasterName(msg) {
+                        s.log("-odown")
 			s.up = true
 		}
 	}, "-odown")
 	redisn.NDo(c, "SUBSCRIBE", func(k string, msg string, err error) {
 		if isMasterName(msg) {
+                        s.log("+switch-master")
 			s.up = true
 		}
 	}, "switch-master")
