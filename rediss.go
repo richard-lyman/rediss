@@ -74,7 +74,7 @@ func New(hostPort string, masterName string, size int, retryDelay time.Duration,
 		size:       size,
 		retryDelay: retryDelay,
 		p:          hostPort,
-		up:         true,
+		Up:         true,
 		n:          map[string][]redisn.Handler{},
 		LogEnabled: logEnabled,
 	}
@@ -110,7 +110,7 @@ type SPool struct {
 	retryDelay  time.Duration
 	resyncDelay time.Duration
 	p           string
-	up          bool
+	Up          bool
 	pool        *redisn.NPool
 	LogEnabled  bool
 	n           map[string][]redisn.Handler
@@ -269,7 +269,7 @@ func (s *SPool) pubSub() {
                         return
                 }
 		if isMasterName(msg) {
-			s.up = false
+			s.Up = false
 		}
 	}, "+odown")
 	redisn.NDo(c, "SUBSCRIBE", func(full string, k string, msg string, err error) {
@@ -277,7 +277,7 @@ func (s *SPool) pubSub() {
                         return
                 }
 		if isMasterName(msg) {
-			s.up = true
+			s.Up = true
 		}
 	}, "-odown")
 	redisn.NDo(c, "SUBSCRIBE", func(full string, k string, msg string, err error) {
@@ -285,7 +285,7 @@ func (s *SPool) pubSub() {
                         return
                 }
 		if isMasterName(msg) {
-                        s.log("+switch-master")
+			s.Up = true
 		}
 	}, "switch-master")
 }
@@ -307,7 +307,7 @@ func (s *SPool) Get() net.Conn {
 }
 
 func (s *SPool) Put(c net.Conn) {
-	if s.up {
+	if s.Up {
 		s.pool.Put(c)
 	} else {
 		s.pool.Bad(c)
