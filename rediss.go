@@ -255,6 +255,7 @@ func (s *SPool) reset() {
 }
 
 func (s *SPool) pubSub() {
+        c := s.creator()
 	isMasterName := func(msg string) bool {
 		tmp := strings.SplitN(msg, " @ ", 2)
 		if len(tmp) < 2 {
