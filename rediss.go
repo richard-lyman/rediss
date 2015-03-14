@@ -76,7 +76,7 @@ func New(hostPort string, masterName string, size int, retryDelay time.Duration,
 		p:          hostPort,
 		up:         true,
 		n:          map[string][]redisn.Handler{},
-                LogEnabled: logEnabled,
+		LogEnabled: logEnabled,
 	}
 	s.bootstrap()
 	s.creator = func() net.Conn {
@@ -172,7 +172,7 @@ func (s *SPool) findPreferred() {
 			}
 		}
 		if !exists {
-                        s.log("Adding sentinel:", hp)
+			s.log("Adding sentinel:", hp)
 			s.hps = append(s.hps, hp)
 		}
 	}
@@ -255,40 +255,36 @@ func (s *SPool) reset() {
 }
 
 func (s *SPool) pubSub() {
-	// TODO - this needs refactoring of the redisn package to allow for pubsub w/out a pool
-	// ... or we create a pool for the sentinels... a pool of size one... such a waste
-	/*
-		isMasterName := func(msg string) bool {
-			tmp := strings.SplitN(msg, " @ ", 2)
-			if len(tmp) < 2 {
-				s.log("Incorrectly formatted Sentinel pubsub message:", msg)
-				return false
-			}
-			msga := strings.SplitN(tmp[1], " ", 2)
-			s.log("Sentinel pubsub:", msg)
-			if len(msga) < 2 {
-				s.log("Incorrectly formatted Sentinel pubsub message:", msg)
-				return false
-			}
-			s.log("Message from masterName")
-			return msga[0] == s.masterName
+	isMasterName := func(msg string) bool {
+		tmp := strings.SplitN(msg, " @ ", 2)
+		if len(tmp) < 2 {
+			s.log("Incorrectly formatted Sentinel pubsub message:", msg)
+			return false
 		}
-		s.Do(c, "SUBSCRIBE", func(k string, msg string, err error) {
-			if isMasterName(msg) {
-				s.up = false
-			}
-		}, "+odown")
-		s.Do(c, "SUBSCRIBE", func(k string, msg string, err error) {
-			if isMasterName(msg) {
-				s.up = true
-			}
-		}, "-odown")
-		s.Do(c, "SUBSCRIBE", func(k string, msg string, err error) {
-			if isMasterName(msg) {
-				s.up = true
-			}
-		}, "switch-master")
-	*/
+		msga := strings.SplitN(tmp[1], " ", 2)
+		s.log("Sentinel pubsub:", msg)
+		if len(msga) < 2 {
+			s.log("Incorrectly formatted Sentinel pubsub message:", msg)
+			return false
+		}
+		s.log("Message from masterName")
+		return msga[0] == s.masterName
+	}
+	redisn.NDo(c, "SUBSCRIBE", func(k string, msg string, err error) {
+		if isMasterName(msg) {
+			s.up = false
+		}
+	}, "+odown")
+	redisn.NDo(c, "SUBSCRIBE", func(k string, msg string, err error) {
+		if isMasterName(msg) {
+			s.up = true
+		}
+	}, "-odown")
+	redisn.NDo(c, "SUBSCRIBE", func(k string, msg string, err error) {
+		if isMasterName(msg) {
+			s.up = true
+		}
+	}, "switch-master")
 }
 
 func (s *SPool) Do(c net.Conn, args ...string) (interface{}, error) {
