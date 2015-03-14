@@ -285,7 +285,7 @@ func (s *SPool) pubSub() {
 			s.up = false
 		}
 	}, "+odown")
-        log.Println("Subscribed to +odown")
+        fmt.Println("Subscribed to +odown")
 	redisn.NDo(c, "SUBSCRIBE", func(full string, k string, msg string, err error) {
                 if err != nil {
                         s.log("ERROR on -odown:", err)
