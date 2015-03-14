@@ -257,6 +257,7 @@ func (s *SPool) reset() {
 func (s *SPool) pubSub() {
         c := s.creator()
 	isMasterName := func(msg string) bool {
+                s.log("Checking for masterName match on message:", msg)
 		tmp := strings.SplitN(msg, " @ ", 2)
 		if len(tmp) < 2 {
 			s.log("Incorrectly formatted Sentinel pubsub message:", msg)
