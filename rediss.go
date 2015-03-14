@@ -29,8 +29,8 @@ One possible use is as follows:
                                         previousState = s.State
                                         fmt.Println(s.State)
                                 }
+                                time.Sleep(100 * time.Millisecond)
                         }
-                        time.Sleep(100 * time.Millisecond)
                 }()
                 for i := 0; i < 100000; i++ { // In the middle of this process you could trigger a failover
                         v, err := s.PDo("GET", "a")
