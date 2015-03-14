@@ -272,7 +272,9 @@ func (s *SPool) pubSub() {
 		s.log("Message from masterName")
 		return msga[0] == s.masterName
 	}
+        fmt.Println("Subscribing to +odown")
 	redisn.NDo(c, "SUBSCRIBE", func(full string, k string, msg string, err error) {
+                fmt.Println("Handler for +odown was called:", full, k, msg, err)
                 if err != nil {
                         s.log("ERROR on +odown:", err)
                         return
@@ -283,6 +285,7 @@ func (s *SPool) pubSub() {
 			s.up = false
 		}
 	}, "+odown")
+        log.Println("Subscribed to +odown")
 	redisn.NDo(c, "SUBSCRIBE", func(full string, k string, msg string, err error) {
                 if err != nil {
                         s.log("ERROR on -odown:", err)
