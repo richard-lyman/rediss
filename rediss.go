@@ -30,8 +30,9 @@ One possible use is as follows:
                                         fmt.Println(s.State)
                                 }
                         }
+                        time.Sleep(100 * time.Millisecond)
                 }()
-                for i := 0; i < 10000; i++ { // In the middle of this process you could trigger a failover
+                for i := 0; i < 100000; i++ { // In the middle of this process you could trigger a failover
                         v, err := s.PDo("GET", "a")
                         if err != nil {
                                 fmt.Println("Failed in test call to GET a", err)
@@ -255,7 +256,7 @@ func (s *SPool) reset() {
 }
 
 func (s *SPool) pubSub() {
-        c := s.creator()
+	c := s.creator()
 	isMasterName := func(msg string) bool {
 		msga := strings.SplitN(msg, " ", 3)
 		if len(msga) < 3 {
@@ -265,25 +266,25 @@ func (s *SPool) pubSub() {
 		return msga[1] == s.masterName
 	}
 	redisn.NDo(c, "SUBSCRIBE", func(full string, k string, msg string, err error) {
-                if err != nil {
-                        return
-                }
+		if err != nil {
+			return
+		}
 		if isMasterName(msg) {
 			s.Up = false
 		}
 	}, "+odown")
 	redisn.NDo(c, "SUBSCRIBE", func(full string, k string, msg string, err error) {
-                if err != nil {
-                        return
-                }
+		if err != nil {
+			return
+		}
 		if isMasterName(msg) {
 			s.Up = true
 		}
 	}, "-odown")
 	redisn.NDo(c, "SUBSCRIBE", func(full string, k string, msg string, err error) {
-                if err != nil {
-                        return
-                }
+		if err != nil {
+			return
+		}
 		if isMasterName(msg) {
 			s.Up = true
 		}
